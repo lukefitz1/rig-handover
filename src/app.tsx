@@ -24,11 +24,20 @@ export function createApp(config: RigConfig = loadConfig()) {
     const night = c.req.param('night');
     const read = readNight(config.runsDir, night);
     if (!read) return c.notFound();
+    const rows = [...read.rows].sort((a, b) => a.job.localeCompare(b.job));
     return c.html(
       <Layout title={`digest · ${night}`} lane={lane()}>
-        <DigestPage night={night} rows={read.rows} empty={read.rows.length === 0} />
+        <DigestPage night={night} rows={rows} empty={rows.length === 0} />
       </Layout>,
     );
+  });
+
+  app.get('/api/digest/:night', (c) => {
+    const night = c.req.param('night');
+    const read = readNight(config.runsDir, night);
+    if (!read) return c.notFound();
+    const rows = [...read.rows].sort((a, b) => a.job.localeCompare(b.job));
+    return c.json({ night, badLines: read.badLines, rows });
   });
 
   return app;
